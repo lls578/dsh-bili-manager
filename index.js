@@ -29,7 +29,25 @@ try {
   const dt = await import('@deepseek-ai/dsh-tools')
   defineTool = dt.defineTool
 } catch { /* 用本地等价实现 */ }
-if (!defineTool) defineTool = (o) => o
+
+// 本地等价实现：把「属性名 → 值 schema」映射编译成 raw JSON Schema（与宿主行为一致）
+function compileParameters(spec) {
+  const properties = {}
+  const required = []
+  for (const [key, def] of Object.entries(spec || {})) {
+    if (!def || typeof def !== 'object') continue
+    if (def.required === true) required.push(key)
+    const { required: _omit, ...rest } = def
+    properties[key] = rest
+  }
+  const schema = { type: 'object', properties }
+  if (required.length) schema.required = required
+  return schema
+}
+
+if (!defineTool) {
+  defineTool = (options) => ({ ...options, parameters: compileParameters(options.parameters) })
+}
 
 export const name = 'bili-manager'
 export const inject = ['tools']
@@ -92,7 +110,7 @@ export function apply(ctx, config) {
   tool({
     name: 'bili_manage_whoami',
     description: '看 B站 当前登录的是谁（校验凭据是否有效）。只读。',
-    parameters: { type: 'object', properties: {}, additionalProperties: false },
+    parameters: {},
     async execute() {
       const { whoami } = await import('./lib/bili.mjs')
       return withCred((cred) => whoami(cred))
@@ -103,11 +121,7 @@ export function apply(ctx, config) {
     name: 'bili_manage_stats',
     description: '读 B站 创作中心数据：账号总览、播放来源、粉丝/路人分布、稿件增量、玩法趋势。只读。',
     parameters: {
-      type: 'object',
-      properties: {
-        days: { type: 'number', description: '趋势取多少天（默认 7，最大 30）' },
-      },
-      additionalProperties: false,
+      days: { type: 'number', description: '趋势取多少天（默认 7，最大 30）' },
     },
     async execute(args) {
       const { creatorStats } = await import('./lib/bili.mjs')
@@ -120,14 +134,9 @@ export function apply(ctx, config) {
     name: 'bili_manage_reply',
     description: '以当前账号发评论，或回复某条评论（需 enableWrite）。回复时传 rpid。',
     parameters: {
-      type: 'object',
-      properties: {
-        bvid: { type: 'string', description: '视频 BV 号' },
-        text: { type: 'string', description: '评论内容' },
-        rpid: { type: 'number', description: '要回复的评论 rpid（发新评论不传）' },
-      },
-      required: ['bvid', 'text'],
-      additionalProperties: false,
+      bvid: { type: 'string', description: '视频 BV 号', required: true },
+      text: { type: 'string', description: '评论内容', required: true },
+      rpid: { type: 'number', description: '要回复的评论 rpid（发新评论不传）' },
     },
     async execute(args) {
       const blocked = writeGuard()
@@ -145,14 +154,9 @@ export function apply(ctx, config) {
     name: 'bili_manage_pin',
     description: '置顶 / 取消置顶一条一级评论（需 enableWrite）。',
     parameters: {
-      type: 'object',
-      properties: {
-        bvid: { type: 'string', description: '视频 BV 号' },
-        rpid: { type: 'number', description: '评论 rpid' },
-        on: { type: 'boolean', description: 'true=置顶（默认），false=取消' },
-      },
-      required: ['bvid', 'rpid'],
-      additionalProperties: false,
+      bvid: { type: 'string', description: '视频 BV 号', required: true },
+      rpid: { type: 'number', description: '评论 rpid', required: true },
+      on: { type: 'boolean', description: 'true=置顶（默认），false=取消' },
     },
     async execute(args) {
       const blocked = writeGuard()
@@ -170,14 +174,9 @@ export function apply(ctx, config) {
     name: 'bili_manage_danmaku',
     description: '发弹幕（需 enableWrite）。progress 单位毫秒，默认第 5 秒。',
     parameters: {
-      type: 'object',
-      properties: {
-        bvid: { type: 'string', description: '视频 BV 号' },
-        msg: { type: 'string', description: '弹幕内容（短一点）' },
-        progressMs: { type: 'number', description: '出现时间（毫秒，默认 5000）' },
-      },
-      required: ['bvid', 'msg'],
-      additionalProperties: false,
+      bvid: { type: 'string', description: '视频 BV 号', required: true },
+      msg: { type: 'string', description: '弹幕内容（短一点）', required: true },
+      progressMs: { type: 'number', description: '出现时间（毫秒，默认 5000）' },
     },
     async execute(args) {
       const blocked = writeGuard()

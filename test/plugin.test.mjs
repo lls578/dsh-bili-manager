@@ -31,10 +31,10 @@ const pin = await registered.find((t) => t.name === 'bili_manage_pin').execute({
 if (!pin.blocked) throw new Error('write guard failed: pin should be blocked')
 console.log('[test] pin guard ok')
 
-// 参数 schema 检查（含 additionalProperties: false）
+// 参数 schema 检查（宿主会将参数映射编译成 raw JSON Schema）
 for (const t of registered) {
   const p = t.parameters
-  if (!p || p.type !== 'object' || p.additionalProperties !== false) {
+  if (!p || p.type !== 'object' || typeof p.properties !== 'object') {
     throw new Error(`bad parameters schema for ${t.name}`)
   }
 }
