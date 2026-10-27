@@ -1,4 +1,4 @@
-﻿# dsh-bili-manager
+# dsh-bili-manager
 
 DSH（DeepSeek Harness）插件：**B站 账号运营工具箱**。
 
@@ -59,6 +59,25 @@ dsh plugin --profile desktop add dsh-bili-manager
       config:
         enableWrite: true
         maxWritesPerSession: 5
+```
+
+## 实测状态（截至 v0.1.0）
+
+| 能力 | 状态 | 说明 |
+|---|---|---|
+| `whoami` | ✅ 实测通过 | 返回账号昵称 / 等级 / 硬币 |
+| `stats` 总览 | ✅ 实测通过 | 创作中心总量、增量、粉丝、点赞等 |
+| `stats` 7 天趋势 | ✅ 实测通过 | 返回 7 天播放趋势点 |
+| `stats` 播放来源 | ⚠️ 新号暂无数据 | 接口返回空（不是报错），播放量起来后才有 |
+| `reply` / `pin` / `danmaku` | 🛡️ 已实现、默认关闭 | 写操作受 `enableWrite` 与单会话上限约束；代码路径未在公开视频中演示实发 |
+| 私信 / 删稿 / 改密码 | ❌ 不提供 | 有意不实现 |
+
+> 视频里 `source: pending` 指的是「播放来源」这一项没数据；其余只读接口是真的返回成功的。
+
+演示脚本（录屏用，输出脱敏）：
+
+```powershell
+node examples/showcase.mjs
 ```
 
 ## 安全设计

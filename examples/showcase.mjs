@@ -1,5 +1,5 @@
 /**
- * 演示脚本（用于录屏/截图展示，输出经过裁剪、不含隐私数据）
+ * 演示脚本（录屏/截图用）：只展示真实跑通的部分，数字打码，不做假。
  * 用法：node examples/showcase.mjs
  */
 import { loadCredential, defaultCredentialPath, whoami, creatorStats } from '../lib/bili.mjs'
@@ -24,10 +24,13 @@ line('$ bili_manage_stats --days 7')
 try {
   const st = await creatorStats(loadCredential(defaultCredentialPath()), 7)
   line('  { ok: ' + st.ok + ', trend_points: ' + st.play_trend.length +
-       ', source: ' + (st.play_source ? 'ok' : 'pending') + ' }')
+       ', totals: "' + (st.totals && st.totals.total_click != null ? '已读取（视频中打码）' : '空') + '" }')
+  line('  注：播放来源接口新号暂无数据（返回空，不是报错）')
 } catch (e) {
   line('  { ok: false, error: "' + e.message.slice(0, 40) + '" }')
 }
 line()
-line('写操作（reply / pin / danmaku）默认关闭 —— 需显式开启 enableWrite')
-line('✅ 只读实测通过')
+line('$ bili_manage_reply（写操作，默认关闭）')
+line('  { ok: false, blocked: true }   ← 安全闸生效，需要显式开 enableWrite')
+line()
+line('[确认] 只读工具实测通过；写操作默认关闭、单会话有上限')
