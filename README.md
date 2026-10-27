@@ -109,6 +109,14 @@ node examples/showcase.mjs
 node test/plugin.test.mjs
 ```
 
+## 设计原则（来自评论区）
+
+> 「权限不靠开关，靠不写。私信、删稿、改密码——代码里根本没有，不是关掉。」 —— B站 评论区
+
+- 写操作默认关：reply / pin / danmaku 需要显式开启 enableWrite
+- 高风险能力不实现：私信、删稿、改密码不在工具列表里，没有关掉这个选项
+- 单会话写操作有上限，防止误操作刷屏
+
 ## License
 
 MIT
