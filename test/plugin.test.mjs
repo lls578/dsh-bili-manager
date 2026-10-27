@@ -52,4 +52,20 @@ if (existsSync(defaultCredentialPath())) {
   console.log('[test] no credential, skip network checks')
 }
 
+
+// 兼容 schemastery volatile 访问器：config 字段可能是 { get: () => value }
+const volatileCfg = {
+  credentialPath: { get: () => '' },
+  enableWrite: { get: () => false },
+  maxWritesPerSession: { get: () => 3 },
+}
+const wrapped = []
+const ctx2 = { tools: { register: (t2) => { wrapped.push(t2); return t2 } }, logger: { info: () => {} } }
+apply(ctx2, volatileCfg)
+const who2 = await wrapped.find((x) => x.name === 'bili_manage_whoami').execute({})
+if (!who2.ok) throw new Error('volatile config whoami failed: ' + JSON.stringify(who2).slice(0, 200))
+const reply2 = await wrapped.find((x) => x.name === 'bili_manage_reply').execute({ bvid: 'BV1mnH56rEKJ', text: 'x' })
+if (!reply2.blocked) throw new Error('volatile config write guard failed')
+console.log('[test] volatile config (schemastery wrapper) ok:', who2.uname)
+
 console.log('[test] ✅ all passed')

@@ -14,7 +14,8 @@
  *   3. 所有工具输出可无损 JSON，失败返回结构化错误
  * ============================================================================
  */
-import { existsSync } from 'node:fs'
+import { existsSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { defaultCredentialPath, loadCredential } from './lib/bili.mjs'
 
@@ -74,15 +75,40 @@ const TEXT_OUTPUT = {
   }],
 }
 
+/**
+ * 读取配置值。
+ * ⚠️ schemastery 的 volatile 字段（.extra('volatile', true)）在 config 实例里是
+ *    { get: () => value, [write]: fn } 形式的访问器，不是普通值 —— 直接读会得到对象。
+ *    这里兼容两种形态（访问器 / 普通值）。
+ */
+function cfgGet(config, key, fallback) {
+  const v = config ? config[key] : undefined
+  if (v && typeof v === 'object') {
+    if (typeof v.get === 'function') {
+      try {
+        const got = v.get()
+        return got === undefined || got === null ? fallback : got
+      } catch {
+        return fallback
+      }
+    }
+    return fallback
+  }
+  return v === undefined || v === null ? fallback : v
+}
+
 export function apply(ctx, config) {
-  const credPath = () => (config && config.credentialPath) || defaultCredentialPath()
+  const credPath = () => {
+    const p = cfgGet(config, 'credentialPath', '')
+    return typeof p === 'string' && p.trim() ? p : defaultCredentialPath()
+  }
   let writes = 0
 
   const writeGuard = () => {
-    if (config && config.enableWrite !== true) {
+    if (cfgGet(config, 'enableWrite', false) !== true) {
       return { ok: false, blocked: true, hint: '写操作没开：在插件设置里打开「enableWrite」，或 profile patch 里写 config.enableWrite: true' }
     }
-    const max = (config && config.maxWritesPerSession) || 10
+    const max = Number(cfgGet(config, 'maxWritesPerSession', 10)) || 10
     if (writes >= max) {
       return { ok: false, blocked: true, hint: `本次会话写操作已达上限 ${max} 条，重启会话或调大 maxWritesPerSession` }
     }
@@ -189,6 +215,19 @@ export function apply(ctx, config) {
       }))
     },
   })
+
+  // 启动自检（仅当 DSH_BILI_MANAGER_DEBUG=1）：把解析出的配置写到临时文件，便于排查
+  try {
+    if (process.env.DSH_BILI_MANAGER_DEBUG) {
+      writeFileSync(join(tmpdir(), 'dsh-bili-manager-boot.json'), JSON.stringify({
+        credentialPath: credPath(),
+        enableWrite: cfgGet(config, 'enableWrite', false),
+        maxWritesPerSession: Number(cfgGet(config, 'maxWritesPerSession', 10)) || 10,
+        configType: typeof config,
+        configKeys: config && typeof config === 'object' ? Object.keys(config) : [],
+      }, null, 2))
+    }
+  } catch { /* 忽略调试失败 */ }
 
   // 启动时打印一条提示（凭据缺失不阻塞插件加载）
   try {
