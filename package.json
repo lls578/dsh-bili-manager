@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "dsh-bili-manager",
   "version": "0.1.0",
   "description": "DSH 插件：B站 账号运营工具箱 —— 读创作中心数据 / 回评论 / 置顶评论 / 发弹幕",
@@ -63,3 +63,4 @@
     "registry": "https://registry.npmjs.org/"
   }
 }
+

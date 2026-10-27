@@ -1,4 +1,4 @@
-# dsh-bili-manager
+﻿# dsh-bili-manager
 
 DSH（DeepSeek Harness）插件：**B站 账号运营工具箱**。
 
@@ -86,3 +86,4 @@ dsh plugin --profile desktop add dsh-bili-manager
 ## License
 
 MIT
+

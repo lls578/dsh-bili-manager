@@ -1,4 +1,4 @@
-name: ci
+﻿name: ci
 
 on:
   push:
@@ -17,6 +17,9 @@ jobs:
           node --check index.js
           node --check lib/bili.mjs
           node --check selftest.mjs
+      - name: Plugin-level test
+        run: node test/plugin.test.mjs
       - name: Import smoke test
         run: |
           node -e "import('./index.js').then(m => { for (const k of ['name','inject','apply']) if (!(k in m)) throw new Error('missing export: ' + k); console.log('plugin exports ok'); })"
+
