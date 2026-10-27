@@ -80,8 +80,15 @@ dsh plugin --profile desktop add dsh-bili-manager
 
 - `index.js` —— Cordis 插件入口（`name` / `inject` / `Config` / `apply`）
 - `lib/bili.mjs` —— 纯 fetch 实现的 B站 API（无第三方依赖）
-- `selftest.mjs` —— 只读自检
+- `selftest.mjs` —— 只读自检（需真实凭据）
+- `test/plugin.test.mjs` —— 插件级测试（模拟 Cordis 上下文，CI 可跑）
 - `cordis.patch.yml` —— 插件挂载声明
+
+## 测试
+
+```powershell
+node test/plugin.test.mjs
+```
 
 ## License
 
