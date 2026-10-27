@@ -2,6 +2,18 @@
   "name": "dsh-bili-manager",
   "version": "0.1.0",
   "description": "DSH 插件：B站 账号运营工具箱 —— 读创作中心数据 / 回评论 / 置顶评论 / 发弹幕",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lls578/-.git"
+  },
+  "homepage": "https://github.com/lls578/-#readme",
+  "bugs": {
+    "url": "https://github.com/lls578/-/issues"
+  },
+  "scripts": {
+    "check": "node --check index.js && node --check lib/bili.mjs && node --check selftest.mjs",
+    "test": "node selftest.mjs"
+  },
   "keywords": [
     "dsh",
     "dsh-plugin",
